@@ -23,9 +23,11 @@ const readFileFromSrc = (path) => {
 }
 const rangesStr = readFileFromSrc(inputFilePath)
 const mockRanges = '11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124'
+const mockRanges2 = '123123123-123123124'
 
 // Create list of ranges
 const rangesList = rangesStr.split(',')
+// const rangesList = mockRanges.split(',')
 
 // Helper functions
 // -- Convert individual range str to arr of two ints
@@ -40,11 +42,22 @@ const rangeStrToInts = (rangeStr) => {
 const isValidId = (id) => {
   const idStr = id.toString()
   const len = idStr.length
-  if (len % 2 === 0) {
-    const firstHalf = idStr.substring(0, len / 2)
-    const secondHalf = idStr.substring(len / 2)
-    return firstHalf === secondHalf ? false : true
+  // console.log('input: ', idStr)
+  if (len === 1) {return true}
+  let checkString
+  // Try loop
+  for (let i = 0; i < len / 2; i++) {
+    // Create sample substring from index 0 to the current index (inclusive)
+    let currentEndIndex = i + 1
+    const sample = idStr.substring(0, currentEndIndex)
+    // console.log('Current sample: ', i, sample)
+    // If we eliminate all instances of the sample string from the idString, any str that consists only
+    // of repeated units will result in an empty string. 
+    checkString = idStr.replaceAll(sample, '')
+    // console.log('checkstring:', checkString)
+    if (!checkString) {return false}
   }
+  
   return true
 }
 
@@ -58,8 +71,15 @@ for (range in rangesList) {
   const upperLimit = limits[1]
   for (let id = lowerLimit; id <= upperLimit; id++) {
     const isValid = isValidId(id)
+    // console.log('is valid: ', isValid)
     // Conditionally add current invalid ID to rolling sum of invalid IDs
     invalidIdsSum = !isValid ? invalidIdsSum + id : invalidIdsSum
+    if (!isValid) {
+      console.log('rolling sum: ', id, ' ==> ', invalidIdsSum)
+    }
+    if (!isValid) {
+      
+    }
   }
 }
 
