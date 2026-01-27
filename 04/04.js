@@ -42,22 +42,19 @@ const rangeStrToInts = (rangeStr) => {
 const isValidId = (id) => {
   const idStr = id.toString()
   const len = idStr.length
-  // console.log('input: ', idStr)
-  if (len === 1) {return true}
+  // Single digit IDs cannot have repeats
+  if (len === 1) return true
+  // Declare var for operating validation logic
   let checkString
-  // Try loop
+  // Loop over first half of string
   for (let i = 0; i < len / 2; i++) {
-    // Create sample substring from index 0 to the current index (inclusive)
-    let currentEndIndex = i + 1
-    const sample = idStr.substring(0, currentEndIndex)
-    // console.log('Current sample: ', i, sample)
-    // If we eliminate all instances of the sample string from the idString, any str that consists only
-    // of repeated units will result in an empty string. 
+    // Initialize sample substring from index 0 to the current index (inclusive)
+    const sample = idStr.substring(0, i + 1)
+    // If we eliminate all instances of the sample string from the idString, any idString that consists only
+    // of repeated units will result in an empty checkString --> therefore id is invalid
     checkString = idStr.replaceAll(sample, '')
-    // console.log('checkstring:', checkString)
-    if (!checkString) {return false}
+    if (!checkString) return false
   }
-  
   return true
 }
 
@@ -71,15 +68,8 @@ for (range in rangesList) {
   const upperLimit = limits[1]
   for (let id = lowerLimit; id <= upperLimit; id++) {
     const isValid = isValidId(id)
-    // console.log('is valid: ', isValid)
     // Conditionally add current invalid ID to rolling sum of invalid IDs
     invalidIdsSum = !isValid ? invalidIdsSum + id : invalidIdsSum
-    if (!isValid) {
-      console.log('rolling sum: ', id, ' ==> ', invalidIdsSum)
-    }
-    if (!isValid) {
-      
-    }
   }
 }
 
