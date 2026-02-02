@@ -31,10 +31,13 @@ const numericBanksStr = readFileFromSrc(inputFilePath)
 // Initialize list of numeric banks from input string
 const numericBanksList = numericBanksStr.split('\n')
 
+// For given bank (str) of nums, and num of digits (int), return largest integer of that many digits
+//  that can be composed from the given bank without changing the order
 const composeMaxJoltageNum = (bank, numOfDigits) => {
+  // Init str to compose output number
   let outputNum = ''
   let startIndex = 0
-  // For each space in our output number up to the num of digits required
+  // For each 'space' in our output number up to the num of digits required
   for (let outputIndex = startIndex; outputIndex < numOfDigits; outputIndex++) {
     // Find the "end" of the bank (ie. the last digit where enough remaining digits are present to complete the output number)
     const endIndex = bank.length - (numOfDigits  - outputNum.length) + 1
@@ -58,11 +61,9 @@ const composeMaxJoltageNum = (bank, numOfDigits) => {
   return parseInt(outputNum)
 }
 
-// console.log('Thingy :', composeMaxJoltageNum(numericBanksList[0], 12))
 let maxJolstageSum = 0
 // Loop over list of banks
 for (bank in numericBanksList) {
-  // console.log(numericBanksList[bank])
   // Find max joltage and add to rolling sum
   maxJolstageSum += composeMaxJoltageNum(numericBanksList[bank], NUM_OF_BATTERIES_PER_BANK)
 
