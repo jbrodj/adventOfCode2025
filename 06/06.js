@@ -14,3 +14,63 @@
 // equal to the bank str length minus n (12 minus that digit's position) (until we reach a point where there are only
 // 12 - position digits remaining in the original bank string). 
 
+const mockBankArr = [
+  '987654321111111',
+  '811111111111119',
+  '234234234234278',
+  '818181911112111']
+const mockBank = '234234234234278'
+const FINAL_STR_LEN = 12
+
+const fs = require('fs')
+const inputFilePath = '../05/05-input.txt'
+const readFileFromSrc = (path) => {
+  try {
+    const file = fs.readFileSync(path)
+    return file.toString()
+  } catch (error) {
+    console.error('Error reading file: ', error.message)
+  }
+}
+const numericBanksStr = readFileFromSrc(inputFilePath)
+
+// Initialize list of numeric banks from input string
+const numericBanksList = numericBanksStr.split('\n')
+
+const composeMaxJoltageNum = (bank, numOfDigits) => {
+  let outputNum = ''
+  let start = 0
+  // For each space in our output number
+  for (let outputIndex = start; outputIndex < numOfDigits; outputIndex++) {
+    // Find the "end" of the bank (ie. the last digit where enough remaining digits are present to complete the output number)
+    const end = bank.length - (numOfDigits  - outputNum.length) + 1
+    let largestDigit = '0'
+    let chosenDigitIndex 
+    // Loop over the bank, from the index of the last chosen digit to the "end"
+    for (let j = start; j < end; j++) {
+      // Find the largest digit remaining within that range
+      if (bank[j] > largestDigit) {
+        // Update largest digit
+        largestDigit = bank[j]
+        // Store index of that digit
+        chosenDigitIndex = j
+      }
+    }
+    // Concat the chosen digit to our output num 
+    outputNum += largestDigit
+    // Set start index to the chosen digit plus 1
+    start = chosenDigitIndex + 1
+  }
+  return parseInt(outputNum)
+}
+
+// console.log('Thingy :', composeMaxJoltageNum(numericBanksList[0], 12))
+let maxJolstageSum = 0
+// Loop over list of banks
+for (bank in numericBanksList) {
+  // console.log(numericBanksList[bank])
+  // Find max joltage and add to rolling sum
+  maxJolstageSum += composeMaxJoltageNum(numericBanksList[bank], 12)
+
+}
+console.log(maxJolstageSum)
