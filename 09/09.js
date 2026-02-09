@@ -14,16 +14,46 @@
 // ways to optimize that the other doesn't? 
 // We can break the list into two arrays by checking for the empty line. 
 
-const mockInput = `
-3-5
-10-14
-16-20
-12-18
+const fs = require('fs')
+const inputFilePath = './09-input.txt'
+const readFileFromSrc = (path) => {
+  try {
+    const file = fs.readFileSync(path)
+    return file.toString()
+  } catch (error) {
+    console.error('Error reading file: ', error.message)
+  }
+}
+const inputArr = readFileFromSrc(inputFilePath).split('\n')
 
-1
-5
-8
-11
-17
-32
-`
+// Compose arrays of ranges and ids by splitting input data at the empty line
+// Converting str nums to ints (for comparisons later in logic)
+// Splitting the ranges into nested array of two nums at the '-' char
+const composeIDRangesArrays = (inputArr) => {
+  let endOfRanges = false
+  for (index in inputArr) {
+    if (index > 0 && inputArr[index] === '') {endOfRanges = true}
+    if (!endOfRanges && inputArr[index]) {rangesArr.push(inputArr[index].split('-'))}
+    if (endOfRanges && inputArr[index]) {idsArr.push(parseInt(inputArr[index]))}
+  }
+}
+
+// Check each ID against each range, counting fresh ingredients, and breaking once a given index is found in any range
+// to avoid counting any ID more than once.
+let rangesArr = []
+let idsArr = []
+const findFreshIngredients = () => {
+  composeIDRangesArrays(inputArr)
+  let freshIngredients = []
+  for (index in idsArr) {
+    for (range in rangesArr) {
+      if (idsArr[index] >= rangesArr[range][0] && idsArr[index] <= rangesArr[range][1]) {
+        freshIngredients.push(idsArr[index])
+        break
+      }
+    }
+  }
+  return freshIngredients
+}
+
+console.log('Num of freshies: ', findFreshIngredients().length)
