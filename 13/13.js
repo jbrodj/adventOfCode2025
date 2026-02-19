@@ -20,7 +20,6 @@
 // We'll keep a counter for splits and print it.
 
 const fs = require('fs')
-const { get } = require('http')
 const inputFilePath = './13-input.txt'
 const readFileFromSrc = (path) => {
   try {
@@ -33,28 +32,24 @@ const readFileFromSrc = (path) => {
 // Split our input into array by line
 const manifoldArray = readFileFromSrc(inputFilePath).split('\n')
 
-// Parse a line in the manifold array and return the modified next line
+// Parse a line by index (int) in the manifold array and return the modified next line
 const runLine = (manifoldArray, lineIndex) => {
-  const nextLineIndex = parseInt(lineIndex) + 1
-  // If end of array, break
-  if (!manifoldArray[nextLineIndex]) {
-    return
-  }
+  const nextLineIndex = lineIndex + 1
   const currentLine = manifoldArray[lineIndex]
   let updatedNextLine = manifoldArray[nextLineIndex]
 
   for (char in currentLine) {
-    const currentIndex = parseInt(char)
     const currentChar = currentLine[char]
     // If char is a tachyon
     if (currentChar === 'S' || currentChar === '|') {
     // Send tachyon to line below:
       // If char at next line is a splitter
       if (manifoldArray[nextLineIndex][char] === '^') {
-        const leftSplitIndex = currentIndex - 1
-        const rightSplitIndex = currentIndex + 1
-        // Check if either of the next line char at the split indecies are already tachyons, if not, increment split count
-        if (updatedNextLine[leftSplitIndex] !== '|' || updatedNextLine[rightSplitIndex] !== '|') {
+        const leftSplitIndex = parseInt(char) - 1
+        const rightSplitIndex = parseInt(char) + 1
+        // Check if char at the split indecies of next line are already tachyons, if either is not, increment split count
+        if (updatedNextLine[leftSplitIndex] !== '|' || 
+            updatedNextLine[rightSplitIndex] !== '|') {
           splitCount++
           // Add tachyon chars to next line
           updatedNextLine = 
@@ -65,7 +60,7 @@ const runLine = (manifoldArray, lineIndex) => {
             updatedNextLine.slice(rightSplitIndex + 1)
         }
       }
-      // If char at next line is empty space
+      // If char at current index of next line is empty space
       else {
         // Add tachyon char to next line
         updatedNextLine = 
@@ -79,11 +74,17 @@ const runLine = (manifoldArray, lineIndex) => {
 }
 
 let splitCount = 0
+// Parse a manifold array and return split count
 const getSplitCount = (manifoldArray) => {
   // For each line in the manifold, update the next line with positions of tachyons from current line
   for (line in manifoldArray) {
+    // Break out for last line, since there is no next line to generate
+    if (line == manifoldArray.length - 1) {
+      break
+    }
     const nextLineIndex = parseInt(line) + 1
-    const nextLine = runLine(manifoldArray, line)
+    // Compose next line and update manifold array
+    const nextLine = runLine(manifoldArray, parseInt(line))
     manifoldArray[nextLineIndex] = nextLine ? nextLine : manifoldArray[nextLineIndex]
   }
   return splitCount
