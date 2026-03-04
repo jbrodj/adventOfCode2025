@@ -40,28 +40,6 @@ const readFileFromSrc = (input) => {
 }
 const inputStr = readFileFromSrc(inputFilePath)
 
-const mockInput = `
-162,817,812
-57,618,57
-906,360,560
-592,479,940
-352,342,300
-466,668,158
-542,29,236
-431,825,988
-739,650,466
-52,470,668
-216,146,977
-819,987,18
-117,168,530
-805,96,715
-346,949,466
-970,615,88
-941,993,340
-862,61,35
-984,92,344
-425,690,689
-`
 // Given a set of string coordinates, create two dimensional coordinate array of comma-separated strs
 const getCoordinateArray = (input) => {
   const splitByLine = input.trim().split('\n')
@@ -74,7 +52,7 @@ const getCoordinateArray = (input) => {
 }
 const coordinateArray = getCoordinateArray(inputStr)
 
-// Find the distance between two given sets of xyz coordinates
+// Find the distance between two given sets of xyz coordinates (arr of comma-separated strs)
 const findDistance = (pointA, pointB) => {
   // Given coordinates
   const xA = pointA[0]
@@ -89,12 +67,12 @@ const findDistance = (pointA, pointB) => {
   const z = Math.abs(zA - zB)
   // Find x-y hypotenuse length
   const xyHyp = Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2))
-  // Find straight line distance between the points (findin xy-z hyp length)
+  // Find straight line distance between the points (finding xy-z hyp length)
   const distance = Math.sqrt(Math.pow(z, 2) + Math.pow(xyHyp, 2))
   return distance
 }
 
-// For a given coordinate, create list of ojb containing all possible connections to another single junction with distance
+// For a given coordinate, create list of obj containing all possible connections to another single junction with distance
 const findAllDistances = (junction, coordinateArray, distancesArray) => {
   let updatedDistancesArray = distancesArray
   let currentConnection
@@ -112,13 +90,11 @@ const findAllDistances = (junction, coordinateArray, distancesArray) => {
   return updatedDistancesArray
 }
 
-// Check whether a given set of coordinates is already in a given circuit array -- return the index of that circuit array or null
+// Check whether a given set of coordinates is already in an arr of circuits -- return the index of that circuit or null
 const isInCircuit = (junction, circuitArray) => {
   for (circuit in circuitArray) {
     for (connection in circuitArray[circuit]) {
       for (coordinate in circuitArray[circuit][connection]) {
-        // console.log('comparing: ', junction, circuitArray[circuit][connection][coordinate])
-        // Compare stringified values of junction coordinates
         if (junction.toString() == circuitArray[circuit][connection][coordinate].toString()) {
           return circuit
         }
@@ -131,9 +107,7 @@ const isInCircuit = (junction, circuitArray) => {
 // Given a coordinate pair and a circuit, return true if identical coordinate pair exists in circuit
 const hasDuplicateConnection = (coordinates, circuit) => {
   for (connection in circuit) {
-    // console.log(coordinates.toString(), circuit[connection].toString())
     if (coordinates.toString() === circuit[connection].toString()) {
-      // console.log('Duplicate coordinates already in circuit')
       return true
     }
   }
@@ -142,13 +116,11 @@ const hasDuplicateConnection = (coordinates, circuit) => {
 
 // Generate list of possible junction box connections sorted by distance (ASC)
 const getSortedDistances = (coordinateArray) => {
-  let arr = []
+  let distancesArr = []
   for (junction in coordinateArray) {
-    arr = findAllDistances(coordinateArray[junction], coordinateArray, arr)
+    distancesArr = findAllDistances(coordinateArray[junction], coordinateArray, distancesArr)
   }
-  let sorties = arr.sort((a, b) => a.distance - b.distance)
-  // console.log(sorties)
-  return sorties
+  return distancesArr.sort((a, b) => a.distance - b.distance)
 }
 
 // Add a given set of coordinates to a circuit array as a string (if it does not already exist in that circuit)
@@ -162,84 +134,64 @@ const addCoordinatesToCircuit = (coordinate, circuitArray, circuitIndex=null) =>
   return modifiedCircuitarray
 }
 
-
-// const distancesArr = getSortedDistances(coordinateArray)
-// console.log('Sorted array: ', distancesArr)
-
+// Given arr of connections sorted by distance (desc), return arr of connected circuits present after the nth connection
 const createNShortestConnections = (n, sortedConnectionsArray) => {
-  // console.log(sortedConnectionsArray)
-  // let circuitArray = []
   let circuitArray = []
   let junctionCounter = 0
   // While our num of connections is less than n, add the next shortest possible connection to a circuit (if it is not already in that circuit)
   for (index in sortedConnectionsArray) {
-    // console.log('=====================================================')
     if (junctionCounter >= n) {
       break
     }
-    // console.log('current connection', sortedConnectionsArray[index].junctions)
     const connection = sortedConnectionsArray[index].junctions
-    let coordinate1 = connection[0]
-    let coordinate2 = connection[1]
-    // console.log('connection', sortedConnectionsArray[index].junctions[1])
-    const junction1Circuit = isInCircuit(coordinate1, circuitArray)
-    const junction2Circuit = isInCircuit(coordinate2, circuitArray)
-    // console.log(coordinate1, 'is in:', junction1Circuit, ' | ', coordinate2, 'is in:', junction2Circuit)
+    const junction1Circuit = isInCircuit(connection[0], circuitArray)
+    const junction2Circuit = isInCircuit(connection[1], circuitArray)
     // If j1 is in a circuit, and j2 is not, add j2 to that circuit
     if (junction1Circuit != null && junction2Circuit == null) {
       circuitArray = addCoordinatesToCircuit(connection, circuitArray, junction1Circuit)
-      // console.log('adding coordinate 2,', coordinate2, 'to circuit', junction1Circuit)
-      // console.log(circuitArray[junction1Circuit])
       junctionCounter++
     }
     // If j2 is in a circuit, and j1 is not, add j1 to that circuit
     if (junction2Circuit != null && junction1Circuit == null) {
       circuitArray = addCoordinatesToCircuit(connection, circuitArray, junction2Circuit)
-      // console.log('adding coordinate 1,', coordinate1, 'to circuit', junction2Circuit)
-      // console.log(circuitArray[junction2Circuit])
       junctionCounter++
     }
     // If neither junction coordinate is in a circuit, add both to a new circuit
     if (junction1Circuit == null && junction2Circuit == null) {
       circuitArray = addCoordinatesToCircuit(connection, circuitArray)
-      // console.log('adding coordinate 1 & 2,', coordinate1, '&', coordinate2, 'to circuit (length)', circuitArray.length - 1)
       junctionCounter++
     }
     // If both are in SAME circuit, but NOT connected to each other, add connection and increment junction counter
     if (junction1Circuit != null && junction1Circuit == junction2Circuit && !hasDuplicateConnection(connection, circuitArray[junction1Circuit])) {
-      // console.log('both are already in same circuit')
       circuitArray = addCoordinatesToCircuit(connection, circuitArray, junction1Circuit)
       junctionCounter++
     }
     // If both are in SEPARATE circuits, merge those circuits
     if (junction1Circuit != null && junction2Circuit != null && junction1Circuit != junction2Circuit) {
-      // console.log('need to merge circuit', junction1Circuit, '&', junction2Circuit)
       circuitArray.splice(junction1Circuit, 1, circuitArray[junction1Circuit].concat(circuitArray[junction2Circuit]))
       circuitArray.splice(junction2Circuit, 1)
-      // junctionCounter++
     }
-    // console.log('junction counter: ', junctionCounter)
-    // console.log(circuitArray)
   }
   return circuitArray
 }
 
+// Given an array of circuits, find the product of multiplying num of junctions in the n largest circuits
+const getLengthProduct = (n, circuitsArray) => {
+  let lengths = []
+  // Reduce each circuit to unique coordinate values to find num of junctions in circuit
+  for (circuit in circuitsArray) {
+    const flattenedCircuits = circuitsArray[circuit].flat()
+    const set = new Set(flattenedCircuits)
+    lengths.push(set.size)
+  }
+  const sortedLengths = lengths.sort((a, b) => b - a)
+  // Multiply the nums of three highest lengths
+  let multiplier = 1
+  for (let i = 0; i < n; i++) {
+    multiplier *= sortedLengths[i]
+  }
+  return multiplier
+}
+
 const circuits = createNShortestConnections(1000, getSortedDistances(coordinateArray)).sort((a, b) => b.length - a.length)
-console.log('final array', circuits)
-
-let lengths = []
-for (circuit in circuits) {
-  const flattenedCircuits = circuits[circuit].flat()
-  const set = new Set(flattenedCircuits)
-  lengths.push(set.size)
-}
-
-const sortedLengths = lengths.sort((a, b) => b - a)
-
-// Multiply the nums of three highest lengths
-let multiplier = 1
-for (let i = 0; i < 3; i++) {
-  multiplier *= sortedLengths[i]
-}
-
-console.log(multiplier)
+console.log(getLengthProduct(3, circuits))
