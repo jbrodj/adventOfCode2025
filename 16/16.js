@@ -7,8 +7,6 @@
 // Then we need the x coordinate of each of the last two junction boxes that we connected, and multiply them together. 
 // This should be straightforward to implement -- but I think the implementation from the prev problem will be too slow here. 
 
-console.time('whole process')
-
 const fs = require('fs')
 const inputFilePath = '../15/15-input.txt'
 const readFileFromSrc = (input) => {
@@ -24,14 +22,12 @@ const inputStr = readFileFromSrc(inputFilePath)
 
 // Given a set of string coordinates, create two dimensional coordinate array of comma-separated strs
 const getCoordinateArray = (input) => {
-  console.time('coord array')
   const splitByLine = input.trim().split('\n')
   let coordinateArray = []
   for (index in splitByLine) {
     const currentCoordinates = splitByLine[index].split(',')
     coordinateArray.push(currentCoordinates)
   }
-  console.timeEnd('coord array')
   return coordinateArray
 }
 const coordinateArray = getCoordinateArray(inputStr)
@@ -68,10 +64,11 @@ const findAllDistances = (junction, coordinateArray, distancesArray) => {
 const isInCircuit = (junction, circuitArray) => {
   for (circuit in circuitArray) {
     for (connection in circuitArray[circuit]) {
-      for (coordinate in circuitArray[circuit][connection]) {
-        if (junction.toString() == circuitArray[circuit][connection][coordinate].toString()) {
-          return circuit
-        }
+      if (
+        junction === circuitArray[circuit][connection][0] || 
+        junction === circuitArray[circuit][connection][1]
+      ) {
+        return circuit
       }
     }
   }
@@ -114,23 +111,24 @@ const createShortestConnections = (sortedConnectionsArray) => {
       junctionsAddedToACircuit.add(connection[1])
     }
     // If j2 is in a circuit, and j1 is not, add j1 to that circuit
-    if (junction2Circuit != null && junction1Circuit == null) {
+    else if (junction1Circuit == null && junction2Circuit != null) {
       circuitArray = addCoordinatesToCircuit(connection, circuitArray, junction2Circuit)
       junctionsAddedToACircuit.add(connection[0])
     }
     // If neither junction coordinate is in a circuit, add both to a new circuit
-    if (junction1Circuit == null && junction2Circuit == null) {
+    else if (junction1Circuit == null && junction2Circuit == null) {
       circuitArray = addCoordinatesToCircuit(connection, circuitArray)
       junctionsAddedToACircuit.add(connection[0])
       junctionsAddedToACircuit.add(connection[1])
     }
     // If both are in SEPARATE circuits, merge those circuits
-    if (junction1Circuit != null && junction2Circuit != null && junction1Circuit != junction2Circuit) {
+    else if (junction1Circuit != null && junction2Circuit != null && junction1Circuit != junction2Circuit) {
       circuitArray.splice(junction1Circuit, 1, circuitArray[junction1Circuit].concat(circuitArray[junction2Circuit]))
       circuitArray.splice(junction2Circuit, 1)
     }
+    // If all junctions in input are present in single circuit, return last connection made
     if (circuitArray.length === 1 && junctionsAddedToACircuit.size >= coordinateArray.length) {
-    return connection
+      return connection
     }
   }
   return "Cannot achieve single circuit"
@@ -143,4 +141,4 @@ const getXCoordProduct = (connection) => {
 }
 
 const finalCircuit = createShortestConnections(getSortedDistances(coordinateArray))
-console.log(getXCoordProduct(finalCircuit))
+console.log('Product: ', getXCoordProduct(finalCircuit))
